@@ -4,15 +4,6 @@ In summary, this book has no content whatsoever.
 
 1.  **Load libraries**
 
-```{r echo=FALSE }
-install.packages("tidyverse")
-install.packages("patchwork")
-install.packages("here")
-install.packages("gt")
-```
-
-
-
 ```{r echo=FALSE}
 library(tidyverse)
 library(patchwork)
@@ -82,6 +73,7 @@ peptides <- quality %>%
 
 peptides
 ```
+
 
 6. **Create a compose plot**
 
