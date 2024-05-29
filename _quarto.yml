@@ -2,13 +2,14 @@ project:
   type: book
 
 book:
-  title: "metaproteomics-analysis"
-  author: "Norah Jones"
+  title: "Metaproteomics Analysis"
+  author: "Johan S. Sáenz & Bibiana Rios"
   date: "5/28/2024"
   chapters:
     - index.qmd
     - intro.qmd
-    - summary.qmd
+    - run_quality.qmd
+    - taxonomy_nmds.qmd
     - references.qmd
 
 bibliography: references.bib
