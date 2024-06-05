@@ -16,7 +16,10 @@ bibliography: references.bib
 
 format:
   html:
-    theme: cosmo
+    theme: 
+      - cosmo
+      - style.css
+    code-link: true
   pdf:
     documentclass: scrreprt
 

@@ -1,83 +1,167 @@
 # Run quality
 
-In summary, this book has no content whatsoever.
+The quality of the metaproteomics data can be evaluated using several parameters. For example the percentage of MS/MS identified and the number of peptide sequences identified. The **MetaLab MAG** tool output the file **`final_summary.tsv`**, which summarize the quality of the metaproteomics run sample by sample.
 
-1.  **Load libraries**
+In this chapter, we describe how to summarize and visualize the run quality of **MetaLab MAG** data.
 
-```{r echo=FALSE}
-library(tidyverse)
-library(patchwork)
-library(here)
-library(gt)
-```
+## Load libraries
 
-2.  **Load data frame**
+You need to load the libraries `tidyverse`, `patchwork` and `gt`. The [patchwork](https://patchwork.data-imaginist.com) package can be use to combine separate plots create with `ggplot` and [gt](https://gt.rstudio.com) to create nice tables.
 
 ```{r}
-quality <- read_tsv("rawdata/final_summary.tsv")
+#| warning: false
+
+library(tidyverse)
+library(patchwork)
+library(gt)
+library(here)
+library(kableExtra)
 ```
 
-3.  **Create a table**
+## Load data frame
 
-```{r echo=FALSE}
+Next, you need to load the data frames that summarize the quality run and that contains the metadata of the samples. Here you can use **`read_tsv()`**, because both data frames are separated by tabs.
+
+```{r}
+#| warning: false
+quality <- read_tsv("rawdata/final_summary.tsv")
+
+metadata <- read_tsv("rawdata/metadata.txt")
+```
+
+Let´s have a look of the data.
+
+```{r}
+#| label: tbl-qc
+#| echo: false
+#| message: false
+#| tbl-cap: Data from summary quality file as a table.
+
+quality %>% 
+   head() %>%  
+  knitr::kable(align = "lccrr") %>% 
+  kable_paper(full_width = F, html_font = "Cambria")
+```
+
+```{r}
+#| label: tbl-metadata
+#| echo: false
+#| message: false
+#| tbl-cap: Metadata, description of samples.
+
+metadata %>% 
+  head() %>%  
+  knitr::kable(align = "lccrr") %>% 
+  kable_paper(full_width = F, html_font = "Cambria")
+```
+
+## Create a table
+
+Now we can create a summary table of all quality parameters present in the quality run data frame. Before calculating the maximum and minimum value, mean and standard deviation, you need to clean and tidy the data. In this case it is necesary to remove the column `Experiment`, rename the column `Raw file` and filter our the last row that contains the total of all samples.
+
+```{r}
 table <- quality %>% 
-  select(-Experiment) %>% 
-  filter(`Raw file` != "Total") %>% 
-  pivot_longer(cols = -1, names_to = "Variable", values_to = "value") %>% 
-  group_by(Variable) %>% 
+  select(-Experiment) %>% #Remove column
+  rename(rawfile = `Raw file`) %>% #Rename variable "Raw file"
+  filter(rawfile != "Total") %>% #Filter out the row "Total"
+  pivot_longer(cols = -rawfile, #Reshape the data frame to a long version
+               names_to = "variable", 
+               values_to = "value") %>% 
+  group_by(variable) %>% 
   summarise(Max = round(max(value), 1),
             Min = round(min(value), 1),
             Mean = round(mean(value), 1),
             Sd = round(sd(value), 1))
 ```
 
+You can use the packages `gt` to output a nice table.
+
 ```{r}
 table %>% 
-  gt() %>% 
-  tab_stubhead(label = "landmass") %>% 
-  cols_label()
+  gt()
 ```
 
-4. **Create a histogram of the identified MS/MS**
+## Create a histogram of the identified MS/MS
+
+Sometimes visualizing the data can give us a better idea of the quality per sample. You can try to plot the distribution of MS/MS identified (%) across all samples. You can add a vertical line using `geom_vline()` to highlight the mean of the values. The mean can be manually added using the value calculated in the previous table.
 
 ```{r}
+#| fig-width: 4
+#| fig-height: 3
+#| fig-align: center
 percentage <- quality %>%
+  rename(rawfile = `Raw file`) %>% #Rename variable "Raw file"
+  filter(rawfile != "Total") %>% #Filter out the row "Total"
   ggplot(aes(x = `MS/MS Identified [%]`)) +
   geom_histogram(binwidth = 2) +
-  geom_vline(xintercept= 55.7, linetype = "dashed", 
+  geom_vline(xintercept= 55.8, linetype = "dashed", #Add a line to indicate mean
              color = "red", linewidth = 1) +
-  scale_x_continuous(breaks = seq(0, 75, by = 5)) +
-  scale_y_continuous(breaks = seq(0, 5, by = 1),
+  scale_x_continuous(breaks = seq(0, 75, by = 5)) + #Control x axis scale
+  scale_y_continuous(limits = c(0, 4), #Control y axis scale
+                     breaks = seq(0, 5, by = 1),
                      expand = c(0, 0)) +
   labs(y = "Number of samples") +
-  theme_classic()
+  theme_bw()
 
 percentage
 ```
 
-5. **Create a histogram of the identified peptide sequences**
+You can try to do the same plot with the `Peptide sequences identified`. Be aware that you need to change the scale in the y axis.
+
+## Create a box plot using a grouping variable
+
+You can also visualize the MS/MS identified (%) in a group of samples. In this case we can create a box plot indicating the MS/MS identified (%) in samples from the Caecum and Jejunum.
+
+First of all we need to clean and tidy the metadata. You need to rename the column **`Probenname`** so it match the column in our quality data frame. After, you need to modify the samples name stored in the **`rawfile`** column. You will notice that in the metadata the values of **`rawfile`** contain a "." but in the run quality data the **`rawfile`** contains "\_". The values in bot data frames must match, otherwise it is impossible to join them. Finally, you can separate the column that contain the information from where the sample was taken and the kind of sample.
 
 ```{r}
-peptides <- quality %>%
-  filter(`Raw file` != "Total") %>% 
-  mutate(`Raw file` =str_remove(`Raw file`, "Seifert_Hammel_Nr")) %>% 
-  ggplot(aes(x = `Peptide Sequences Identified`)) +
-  geom_histogram(binwidth = 1000) +
-  geom_vline(xintercept = 16630, linetype = "dashed", 
-             color = "red", linewidth = 1) +
-  scale_x_continuous(breaks = seq(0, 30231, by = 2500)) +
-  scale_y_continuous(breaks = seq(0, 20, by = 2),
-                     expand = c(0, 0)) +
-  labs(y = "Number of samples") +
-  theme_classic()
+#| warning: false
+#| fig-align: center
+metadata_clean <- metadata %>%
+  rename(rawfile = Probenname) %>% #Rename column to match quality data frame
+  mutate(rawfile = str_replace(rawfile, "\\.", "_")) %>% #Replace . for _
+  separate(Abschnitt, #Separate the column "Abschnitt" into 2 new columns
+           sep = " ",
+           into = c("region", "source"))
 
-peptides
+head(metadata_clean)
 ```
 
+After tidying the metadata, you can join it with the quality data. This new data frame can be use to create a box plot of the MS/MS identified (%) in the samples label as Caecum and Jejunum.
 
-6. **Create a compose plot**
+```{r}
+#| fig-width: 4
+#| fig-height: 3
+#| fig-align: center
 
-```{r echo=FALSE}
-(peptides /percentage)  + 
+boxplot <- quality %>% 
+  rename(rawfile = `Raw file`) %>% 
+  filter(rawfile != "Total") %>% 
+  select(-Experiment) %>%
+  left_join(metadata_clean, by = "rawfile") %>% #join the metadata and quality
+  ggplot(aes(y = `MS/MS Identified [%]`,
+             x = region)) +
+  geom_boxplot(width = 0.3) +
+  geom_jitter(width = 0.2,
+              aes(color = region)) + #color the dots by gut region
+  scale_y_continuous(expand = c(0, 0),
+                     limits = c(0, 100))+ #Modify the y scale
+  theme_bw() +
+  theme(legend.title = element_blank()) #Remove the legend title
+
+boxplot
+```
+
+## Create a compose plot
+
+Finally you can create a compose plot using **`patchwork`** to display the MS/MS identified (%) in all the samples and gruped by the different gut regions.
+
+```{r}
+#| fig-width: 7
+#| fig-height: 3
+#| fig-align: center
+
+(percentage | boxplot)  +
   plot_annotation(tag_levels = 'A')
+
 ```
