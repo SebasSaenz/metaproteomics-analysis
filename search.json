@@ -14,7 +14,7 @@
     "href": "intro.html",
     "title": "1  Introduction",
     "section": "",
-    "text": "This is a book created from markdown and executable code.\nSee Knuth (1984) for additional discussion of literate programming.\n\n1 + 1\n\n[1] 2\n\n\n\n\n\n\nKnuth, Donald E. 1984. “Literate Programming.” Comput. J. 27 (2): 97–111. https://doi.org/10.1093/comjnl/27.2.97.",
+    "text": "COMING SOON!!!",
     "crumbs": [
       "<span class='chapter-number'>1</span>  <span class='chapter-title'>Introduction</span>"
     ]
@@ -24,19 +24,59 @@
     "href": "run_quality.html",
     "title": "2  Run quality",
     "section": "",
-    "text": "In summary, this book has no content whatsoever.\n\nLoad libraries\n\n\n\n── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──\n✔ dplyr     1.1.4     ✔ readr     2.1.5\n✔ forcats   1.0.0     ✔ stringr   1.5.1\n✔ ggplot2   3.5.1     ✔ tibble    3.2.1\n✔ lubridate 1.9.3     ✔ tidyr     1.3.1\n✔ purrr     1.0.2     \n── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──\n✖ dplyr::filter() masks stats::filter()\n✖ dplyr::lag()    masks stats::lag()\nℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors\nhere() starts at /home/runner/work/metaproteomics-analysis/metaproteomics-analysis\n\n\n\nLoad data frame\n\n\nquality &lt;- read_tsv(\"rawdata/final_summary.tsv\")\n\nRows: 21 Columns: 6\n── Column specification ────────────────────────────────────────────────────────\nDelimiter: \"\\t\"\nchr (2): Raw file, Experiment\ndbl (4): MS/MS, MS/MS Identified, MS/MS Identified [%], Peptide Sequences Id...\n\nℹ Use `spec()` to retrieve the full column specification for this data.\nℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.\n\n\n\nCreate a table\n\n\ntable %&gt;% \n  gt() %&gt;% \n  tab_stubhead(label = \"landmass\") %&gt;% \n  cols_label()\n\n\n\n\n\n\n\n\nVariable\nMax\nMin\nMean\nSd\n\n\n\n\nMS/MS\n76291.0\n43689.0\n59796.2\n10313.3\n\n\nMS/MS Identified\n46623.0\n20545.0\n32962.1\n6427.9\n\n\nMS/MS Identified [%]\n74.1\n41.4\n55.8\n10.4\n\n\nPeptide Sequences Identified\n30231.0\n7042.0\n16630.8\n6401.0\n\n\n\n\n\n\n\n\n\nCreate a histogram of the identified MS/MS\n\n\npercentage &lt;- quality %&gt;%\n  ggplot(aes(x = `MS/MS Identified [%]`)) +\n  geom_histogram(binwidth = 2) +\n  geom_vline(xintercept= 55.7, linetype = \"dashed\", \n             color = \"red\", linewidth = 1) +\n  scale_x_continuous(breaks = seq(0, 75, by = 5)) +\n  scale_y_continuous(breaks = seq(0, 5, by = 1),\n                     expand = c(0, 0)) +\n  labs(y = \"Number of samples\") +\n  theme_classic()\n\npercentage\n\n\n\n\n\n\n\n\n\nCreate a histogram of the identified peptide sequences\n\n\npeptides &lt;- quality %&gt;%\n  filter(`Raw file` != \"Total\") %&gt;% \n  mutate(`Raw file` =str_remove(`Raw file`, \"Seifert_Hammel_Nr\")) %&gt;% \n  ggplot(aes(x = `Peptide Sequences Identified`)) +\n  geom_histogram(binwidth = 1000) +\n  geom_vline(xintercept = 16630, linetype = \"dashed\", \n             color = \"red\", linewidth = 1) +\n  scale_x_continuous(breaks = seq(0, 30231, by = 2500)) +\n  scale_y_continuous(breaks = seq(0, 20, by = 2),\n                     expand = c(0, 0)) +\n  labs(y = \"Number of samples\") +\n  theme_classic()\n\npeptides\n\n\n\n\n\n\n\n\n\nCreate a compose plot",
+    "text": "2.1 Load libraries\nYou need to load the libraries tidyverse, patchwork and gt. The patchwork package can be use to combine separate plots create with ggplot and gt to create nice tables.\nlibrary(tidyverse)\nlibrary(patchwork)\nlibrary(gt)\nlibrary(here)",
     "crumbs": [
       "<span class='chapter-number'>2</span>  <span class='chapter-title'>Run quality</span>"
     ]
   },
   {
-    "objectID": "references.html",
-    "href": "references.html",
-    "title": "References",
-    "section": "",
-    "text": "Knuth, Donald E. 1984. “Literate Programming.” Comput.\nJ. 27 (2): 97–111. https://doi.org/10.1093/comjnl/27.2.97.",
+    "objectID": "run_quality.html#load-data-frame",
+    "href": "run_quality.html#load-data-frame",
+    "title": "2  Run quality",
+    "section": "2.2 Load data frame",
+    "text": "2.2 Load data frame\nNext, you need to load the data frames that summarize the quality run and that contains the metadata of the samples. Here you can use read_tsv(), because both data frames are separated by tabs.\n\nquality &lt;- read_tsv(\"rawdata/final_summary.tsv\")\n\nmetadata &lt;- read_tsv(\"rawdata/metadata.txt\")\n\nLet´s have a look of the data.\n\n\n\n\nTable 2.1: Data from summary quality file as a table.\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nRaw file\nExperiment\nMS/MS\nMS/MS Identified\nMS/MS Identified [%]\nPeptide Sequences Identified\n\n\n\n\n10_18\n10_18\n67058\n39552\n58.98\n26362\n\n\n10_9\n10_9\n52640\n38984\n74.06\n20835\n\n\n11_18\n11_18\n71382\n38238\n53.57\n23999\n\n\n11_9\n11_9\n48232\n24088\n49.94\n8282\n\n\n12_18\n12_18\n64638\n26744\n41.38\n13815\n\n\n12_9\n12_9\n43689\n20545\n47.03\n7042\n\n\n\n\n\n\n\n\n\n\n\n\nTable 2.2: Metadata, description of samples.\n\n\n\n\n\n\nProbenname\nAbschnitt\n\n\n\n\n9.1\nStomach Digesta\n\n\n9.3\nStomach Mucosa 1\n\n\n9.4\nStomach Mucosa 2\n\n\n9.5\nStomach Mucosa 3\n\n\n9.6\nDuodenum Digesta\n\n\n9.8\nDuodenum Mucosa",
     "crumbs": [
-      "References"
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Run quality</span>"
+    ]
+  },
+  {
+    "objectID": "run_quality.html#create-a-table",
+    "href": "run_quality.html#create-a-table",
+    "title": "2  Run quality",
+    "section": "2.3 Create a table",
+    "text": "2.3 Create a table\nNow we can create a summary table of all quality parameters present in the quality run data frame. Before calculating the maximum and minimum value, mean and standard deviation, you need to clean and tidy the data. In this case it is necesary to remove the column Experiment, rename the column Raw file and filter our the last row that contains the total of all samples.\n\ntable &lt;- quality %&gt;% \n  select(-Experiment) %&gt;% #Remove column\n  rename(rawfile = `Raw file`) %&gt;% #Rename variable \"Raw file\"\n  filter(rawfile != \"Total\") %&gt;% #Filter out the row \"Total\"\n  pivot_longer(cols = -rawfile, #Reshape the data frame to a long version\n               names_to = \"variable\", \n               values_to = \"value\") %&gt;% \n  group_by(variable) %&gt;% \n  summarise(Max = round(max(value), 1),\n            Min = round(min(value), 1),\n            Mean = round(mean(value), 1),\n            Sd = round(sd(value), 1))\n\nYou can use the packages gt to output a nice table.\n\ntable %&gt;% \n  gt()\n\n\n\n\n\n\n\nvariable\nMax\nMin\nMean\nSd\n\n\n\n\nMS/MS\n76291.0\n43689.0\n59796.2\n10313.3\n\n\nMS/MS Identified\n46623.0\n20545.0\n32962.1\n6427.9\n\n\nMS/MS Identified [%]\n74.1\n41.4\n55.8\n10.4\n\n\nPeptide Sequences Identified\n30231.0\n7042.0\n16630.8\n6401.0",
+    "crumbs": [
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Run quality</span>"
+    ]
+  },
+  {
+    "objectID": "run_quality.html#create-a-histogram-of-the-identified-msms",
+    "href": "run_quality.html#create-a-histogram-of-the-identified-msms",
+    "title": "2  Run quality",
+    "section": "2.4 Create a histogram of the identified MS/MS",
+    "text": "2.4 Create a histogram of the identified MS/MS\nSometimes visualizing the data can give us a better idea of the quality per sample. You can try to plot the distribution of MS/MS identified (%) across all samples. You can add a vertical line using geom_vline() to highlight the mean of the values. The mean can be manually added using the value calculated in the previous table.\n\npercentage &lt;- quality %&gt;%\n  rename(rawfile = `Raw file`) %&gt;% #Rename variable \"Raw file\"\n  filter(rawfile != \"Total\") %&gt;% #Filter out the row \"Total\"\n  ggplot(aes(x = `MS/MS Identified [%]`)) +\n  geom_histogram(binwidth = 2) +\n  geom_vline(xintercept= 55.8, linetype = \"dashed\", #Add a line to indicate mean\n             color = \"red\", linewidth = 1) +\n  scale_x_continuous(breaks = seq(0, 75, by = 5)) + #Control x axis scale\n  scale_y_continuous(limits = c(0, 4), #Control y axis scale\n                     breaks = seq(0, 5, by = 1),\n                     expand = c(0, 0)) +\n  labs(y = \"Number of samples\") +\n  theme_bw()\n\npercentage\n\n\n\n\n\n\n\n\nYou can try to do the same plot with the Peptide sequences identified. Be aware that you need to change the scale in the y axis.",
+    "crumbs": [
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Run quality</span>"
+    ]
+  },
+  {
+    "objectID": "run_quality.html#create-a-box-plot-using-a-grouping-variable",
+    "href": "run_quality.html#create-a-box-plot-using-a-grouping-variable",
+    "title": "2  Run quality",
+    "section": "2.5 Create a box plot using a grouping variable",
+    "text": "2.5 Create a box plot using a grouping variable\nYou can also visualize the MS/MS identified (%) in a group of samples. In this case we can create a box plot indicating the MS/MS identified (%) in samples from the Caecum and Jejunum.\nFirst of all we need to clean and tidy the metadata. You need to rename the column Probenname so it match the column in our quality data frame. After, you need to modify the samples name stored in the rawfile column. You will notice that in the metadata the values of rawfile contain a “.” but in the run quality data the rawfile contains “_”. The values in bot data frames must match, otherwise it is impossible to join them. Finally, you can separate the column that contain the information from where the sample was taken and the kind of sample.\n\nmetadata_clean &lt;- metadata %&gt;%\n  rename(rawfile = Probenname) %&gt;% #Rename column to match quality data frame\n  mutate(rawfile = str_replace(rawfile, \"\\\\.\", \"_\")) %&gt;% #Replace . for _\n  separate(Abschnitt, #Separate the column \"Abschnitt\" into 2 new columns\n           sep = \" \",\n           into = c(\"region\", \"source\"))\n\nhead(metadata_clean)\n\n# A tibble: 6 × 3\n  rawfile region   source \n  &lt;chr&gt;   &lt;chr&gt;    &lt;chr&gt;  \n1 9_1     Stomach  Digesta\n2 9_3     Stomach  Mucosa \n3 9_4     Stomach  Mucosa \n4 9_5     Stomach  Mucosa \n5 9_6     Duodenum Digesta\n6 9_8     Duodenum Mucosa \n\n\nAfter tidying the metadata, you can join it with the quality data. This new data frame can be use to create a box plot of the MS/MS identified (%) in the samples label as Caecum and Jejunum.\n\nboxplot &lt;- quality %&gt;% \n  rename(rawfile = `Raw file`) %&gt;% \n  filter(rawfile != \"Total\") %&gt;% \n  select(-Experiment) %&gt;%\n  left_join(metadata_clean, by = \"rawfile\") %&gt;% #join the metadata and quality\n  ggplot(aes(y = `MS/MS Identified [%]`,\n             x = region)) +\n  geom_boxplot(width = 0.3) +\n  geom_jitter(width = 0.2,\n              aes(color = region)) + #color the dots by gut region\n  scale_y_continuous(expand = c(0, 0),\n                     limits = c(0, 100))+ #Modify the y scale\n  theme_bw() +\n  theme(legend.title = element_blank()) #Remove the legend title\n\nboxplot",
+    "crumbs": [
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Run quality</span>"
+    ]
+  },
+  {
+    "objectID": "run_quality.html#create-a-compose-plot",
+    "href": "run_quality.html#create-a-compose-plot",
+    "title": "2  Run quality",
+    "section": "2.6 Create a compose plot",
+    "text": "2.6 Create a compose plot\nFinally you can create a compose plot using patchwork to display the MS/MS identified (%) in all the samples and gruped by the different gut regions.\n\n(percentage | boxplot)  +\n  plot_annotation(tag_levels = 'A')",
+    "crumbs": [
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Run quality</span>"
     ]
   }
 ]

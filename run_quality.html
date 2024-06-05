@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.4.554">
+<meta name="generator" content="quarto-1.4.555">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -161,7 +161,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./taxonomy_nmds.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">taxonomy_nmds.html</span></span></a>
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Ordination based on taxonomy</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
@@ -176,7 +176,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#load-libraries" id="toc-load-libraries" class="nav-link active" data-scroll-target="#load-libraries"><span class="header-section-number">2.1</span> Load libraries</a></li>
+  <li><a href="#load-data-frame" id="toc-load-data-frame" class="nav-link" data-scroll-target="#load-data-frame"><span class="header-section-number">2.2</span> Load data frame</a></li>
+  <li><a href="#create-a-table" id="toc-create-a-table" class="nav-link" data-scroll-target="#create-a-table"><span class="header-section-number">2.3</span> Create a table</a></li>
+  <li><a href="#create-a-histogram-of-the-identified-msms" id="toc-create-a-histogram-of-the-identified-msms" class="nav-link" data-scroll-target="#create-a-histogram-of-the-identified-msms"><span class="header-section-number">2.4</span> Create a histogram of the identified MS/MS</a></li>
+  <li><a href="#create-a-box-plot-using-a-grouping-variable" id="toc-create-a-box-plot-using-a-grouping-variable" class="nav-link" data-scroll-target="#create-a-box-plot-using-a-grouping-variable"><span class="header-section-number">2.5</span> Create a box plot using a grouping variable</a></li>
+  <li><a href="#create-a-compose-plot" id="toc-create-a-compose-plot" class="nav-link" data-scroll-target="#create-a-compose-plot"><span class="header-section-number">2.6</span> Create a compose plot</a></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
@@ -200,68 +211,197 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p>In summary, this book has no content whatsoever.</p>
-<ol type="1">
-<li><strong>Load libraries</strong></li>
-</ol>
+<p>The quality of the metaproteomics data can be evaluated using several parameters. For example the percentage of MS/MS identified and the number of peptide sequences identified. The <strong>MetaLab MAG</strong> tool output the file <strong><code>final_summary.tsv</code></strong>, which summarize the quality of the metaproteomics run sample by sample.</p>
+<p>In this chapter, we describe how to summarize and visualize the run quality of <strong>MetaLab MAG</strong> data.</p>
+<section id="load-libraries" class="level2" data-number="2.1">
+<h2 data-number="2.1" class="anchored" data-anchor-id="load-libraries"><span class="header-section-number">2.1</span> Load libraries</h2>
+<p>You need to load the libraries <code>tidyverse</code>, <code>patchwork</code> and <code>gt</code>. The <a href="https://patchwork.data-imaginist.com">patchwork</a> package can be use to combine separate plots create with <code>ggplot</code> and <a href="https://gt.rstudio.com">gt</a> to create nice tables.</p>
 <div class="cell">
-<div class="cell-output cell-output-stderr">
-<pre><code>── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
-✔ dplyr     1.1.4     ✔ readr     2.1.5
-✔ forcats   1.0.0     ✔ stringr   1.5.1
-✔ ggplot2   3.5.1     ✔ tibble    3.2.1
-✔ lubridate 1.9.3     ✔ tidyr     1.3.1
-✔ purrr     1.0.2     
-── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
-✖ dplyr::filter() masks stats::filter()
-✖ dplyr::lag()    masks stats::lag()
-ℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors
-here() starts at /home/runner/work/metaproteomics-analysis/metaproteomics-analysis</code></pre>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(patchwork)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(gt)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(here)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-</div>
-<ol start="2" type="1">
-<li><strong>Load data frame</strong></li>
-</ol>
+</section>
+<section id="load-data-frame" class="level2" data-number="2.2">
+<h2 data-number="2.2" class="anchored" data-anchor-id="load-data-frame"><span class="header-section-number">2.2</span> Load data frame</h2>
+<p>Next, you need to load the data frames that summarize the quality run and that contains the metadata of the samples. Here you can use <strong><code>read_tsv()</code></strong>, because both data frames are separated by tabs.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>quality <span class="ot">&lt;-</span> <span class="fu">read_tsv</span>(<span class="st">"rawdata/final_summary.tsv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Rows: 21 Columns: 6
-── Column specification ────────────────────────────────────────────────────────
-Delimiter: "\t"
-chr (2): Raw file, Experiment
-dbl (4): MS/MS, MS/MS Identified, MS/MS Identified [%], Peptide Sequences Id...
-
-ℹ Use `spec()` to retrieve the full column specification for this data.
-ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>quality <span class="ot">&lt;-</span> <span class="fu">read_tsv</span>(<span class="st">"rawdata/final_summary.tsv"</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>metadata <span class="ot">&lt;-</span> <span class="fu">read_tsv</span>(<span class="st">"rawdata/metadata.txt"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Let´s have a look of the data.</p>
+<div class="cell">
+<div id="tbl-qc" class="cell quarto-float anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-qc-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;2.1: Data from summary quality file as a table.
+</figcaption>
+<div aria-describedby="tbl-qc-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output-display">
+<table class="do-not-create-environment cell caption-top table table-sm table-striped small">
+<colgroup>
+<col style="width: 9%">
+<col style="width: 12%">
+<col style="width: 7%">
+<col style="width: 17%">
+<col style="width: 22%">
+<col style="width: 30%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Raw file</th>
+<th style="text-align: center;">Experiment</th>
+<th style="text-align: center;">MS/MS</th>
+<th style="text-align: right;">MS/MS Identified</th>
+<th style="text-align: right;">MS/MS Identified [%]</th>
+<th style="text-align: left;">Peptide Sequences Identified</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">10_18</td>
+<td style="text-align: center;">10_18</td>
+<td style="text-align: center;">67058</td>
+<td style="text-align: right;">39552</td>
+<td style="text-align: right;">58.98</td>
+<td style="text-align: left;">26362</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">10_9</td>
+<td style="text-align: center;">10_9</td>
+<td style="text-align: center;">52640</td>
+<td style="text-align: right;">38984</td>
+<td style="text-align: right;">74.06</td>
+<td style="text-align: left;">20835</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">11_18</td>
+<td style="text-align: center;">11_18</td>
+<td style="text-align: center;">71382</td>
+<td style="text-align: right;">38238</td>
+<td style="text-align: right;">53.57</td>
+<td style="text-align: left;">23999</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">11_9</td>
+<td style="text-align: center;">11_9</td>
+<td style="text-align: center;">48232</td>
+<td style="text-align: right;">24088</td>
+<td style="text-align: right;">49.94</td>
+<td style="text-align: left;">8282</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">12_18</td>
+<td style="text-align: center;">12_18</td>
+<td style="text-align: center;">64638</td>
+<td style="text-align: right;">26744</td>
+<td style="text-align: right;">41.38</td>
+<td style="text-align: left;">13815</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">12_9</td>
+<td style="text-align: center;">12_9</td>
+<td style="text-align: center;">43689</td>
+<td style="text-align: right;">20545</td>
+<td style="text-align: right;">47.03</td>
+<td style="text-align: left;">7042</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
-<ol start="3" type="1">
-<li><strong>Create a table</strong></li>
-</ol>
+</figure>
+</div>
+</div>
+<div class="cell">
+<div id="tbl-metadata" class="cell quarto-float anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-metadata-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;2.2: Metadata, description of samples.
+</figcaption>
+<div aria-describedby="tbl-metadata-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output-display">
+<table class="do-not-create-environment cell caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: left;">Probenname</th>
+<th style="text-align: center;">Abschnitt</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">9.1</td>
+<td style="text-align: center;">Stomach Digesta</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">9.3</td>
+<td style="text-align: center;">Stomach Mucosa 1</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">9.4</td>
+<td style="text-align: center;">Stomach Mucosa 2</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">9.5</td>
+<td style="text-align: center;">Stomach Mucosa 3</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">9.6</td>
+<td style="text-align: center;">Duodenum Digesta</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">9.8</td>
+<td style="text-align: center;">Duodenum Mucosa</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</figure>
+</div>
+</div>
+</section>
+<section id="create-a-table" class="level2" data-number="2.3">
+<h2 data-number="2.3" class="anchored" data-anchor-id="create-a-table"><span class="header-section-number">2.3</span> Create a table</h2>
+<p>Now we can create a summary table of all quality parameters present in the quality run data frame. Before calculating the maximum and minimum value, mean and standard deviation, you need to clean and tidy the data. In this case it is necesary to remove the column <code>Experiment</code>, rename the column <code>Raw file</code> and filter our the last row that contains the total of all samples.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>table <span class="ot">&lt;-</span> quality <span class="sc">%&gt;%</span> </span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>Experiment) <span class="sc">%&gt;%</span> <span class="co">#Remove column</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">rawfile =</span> <span class="st">`</span><span class="at">Raw file</span><span class="st">`</span>) <span class="sc">%&gt;%</span> <span class="co">#Rename variable "Raw file"</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(rawfile <span class="sc">!=</span> <span class="st">"Total"</span>) <span class="sc">%&gt;%</span> <span class="co">#Filter out the row "Total"</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="sc">-</span>rawfile, <span class="co">#Reshape the data frame to a long version</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>               <span class="at">names_to =</span> <span class="st">"variable"</span>, </span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>               <span class="at">values_to =</span> <span class="st">"value"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(variable) <span class="sc">%&gt;%</span> </span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">Max =</span> <span class="fu">round</span>(<span class="fu">max</span>(value), <span class="dv">1</span>),</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>            <span class="at">Min =</span> <span class="fu">round</span>(<span class="fu">min</span>(value), <span class="dv">1</span>),</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>            <span class="at">Mean =</span> <span class="fu">round</span>(<span class="fu">mean</span>(value), <span class="dv">1</span>),</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>            <span class="at">Sd =</span> <span class="fu">round</span>(<span class="fu">sd</span>(value), <span class="dv">1</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>You can use the packages <code>gt</code> to output a nice table.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>table <span class="sc">%&gt;%</span> </span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gt</span>() <span class="sc">%&gt;%</span> </span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tab_stubhead</span>(<span class="at">label =</span> <span class="st">"landmass"</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cols_label</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gt</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<div>
-<div id="grhnwqinjv" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#grhnwqinjv table {
+<div id="zcpfujonas" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#zcpfujonas table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-#grhnwqinjv thead, #grhnwqinjv tbody, #grhnwqinjv tfoot, #grhnwqinjv tr, #grhnwqinjv td, #grhnwqinjv th {
+#zcpfujonas thead, #zcpfujonas tbody, #zcpfujonas tfoot, #zcpfujonas tr, #zcpfujonas td, #zcpfujonas th {
   border-style: none;
 }
 
-#grhnwqinjv p {
+#zcpfujonas p {
   margin: 0;
   padding: 0;
 }
 
-#grhnwqinjv .gt_table {
+#zcpfujonas .gt_table {
   display: table;
   border-collapse: collapse;
   line-height: normal;
@@ -287,12 +427,12 @@ dbl (4): MS/MS, MS/MS Identified, MS/MS Identified [%], Peptide Sequences Id...
   border-left-color: #D3D3D3;
 }
 
-#grhnwqinjv .gt_caption {
+#zcpfujonas .gt_caption {
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-#grhnwqinjv .gt_title {
+#zcpfujonas .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -304,7 +444,7 @@ dbl (4): MS/MS, MS/MS Identified, MS/MS Identified [%], Peptide Sequences Id...
   border-bottom-width: 0;
 }
 
-#grhnwqinjv .gt_subtitle {
+#zcpfujonas .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -316,7 +456,7 @@ dbl (4): MS/MS, MS/MS Identified, MS/MS Identified [%], Peptide Sequences Id...
   border-top-width: 0;
 }
 
-#grhnwqinjv .gt_heading {
+#zcpfujonas .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -328,13 +468,13 @@ dbl (4): MS/MS, MS/MS Identified, MS/MS Identified [%], Peptide Sequences Id...
   border-right-color: #D3D3D3;
 }
 
-#grhnwqinjv .gt_bottom_border {
+#zcpfujonas .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#grhnwqinjv .gt_col_headings {
+#zcpfujonas .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -349,7 +489,7 @@ dbl (4): MS/MS, MS/MS Identified, MS/MS Identified [%], Peptide Sequences Id...
   border-right-color: #D3D3D3;
 }
 
-#grhnwqinjv .gt_col_heading {
+#zcpfujonas .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -369,7 +509,7 @@ dbl (4): MS/MS, MS/MS Identified, MS/MS Identified [%], Peptide Sequences Id...
   overflow-x: hidden;
 }
 
-#grhnwqinjv .gt_column_spanner_outer {
+#zcpfujonas .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -381,15 +521,15 @@ dbl (4): MS/MS, MS/MS Identified, MS/MS Identified [%], Peptide Sequences Id...
   padding-right: 4px;
 }
 
-#grhnwqinjv .gt_column_spanner_outer:first-child {
+#zcpfujonas .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#grhnwqinjv .gt_column_spanner_outer:last-child {
+#zcpfujonas .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#grhnwqinjv .gt_column_spanner {
+#zcpfujonas .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -401,11 +541,11 @@ dbl (4): MS/MS, MS/MS Identified, MS/MS Identified [%], Peptide Sequences Id...
   width: 100%;
 }
 
-#grhnwqinjv .gt_spanner_row {
+#zcpfujonas .gt_spanner_row {
   border-bottom-style: hidden;
 }
 
-#grhnwqinjv .gt_group_heading {
+#zcpfujonas .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -431,7 +571,7 @@ dbl (4): MS/MS, MS/MS Identified, MS/MS Identified [%], Peptide Sequences Id...
   text-align: left;
 }
 
-#grhnwqinjv .gt_empty_group_heading {
+#zcpfujonas .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -446,15 +586,15 @@ dbl (4): MS/MS, MS/MS Identified, MS/MS Identified [%], Peptide Sequences Id...
   vertical-align: middle;
 }
 
-#grhnwqinjv .gt_from_md > :first-child {
+#zcpfujonas .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#grhnwqinjv .gt_from_md > :last-child {
+#zcpfujonas .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#grhnwqinjv .gt_row {
+#zcpfujonas .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -473,7 +613,7 @@ dbl (4): MS/MS, MS/MS Identified, MS/MS Identified [%], Peptide Sequences Id...
   overflow-x: hidden;
 }
 
-#grhnwqinjv .gt_stub {
+#zcpfujonas .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -486,7 +626,7 @@ dbl (4): MS/MS, MS/MS Identified, MS/MS Identified [%], Peptide Sequences Id...
   padding-right: 5px;
 }
 
-#grhnwqinjv .gt_stub_row_group {
+#zcpfujonas .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -500,15 +640,15 @@ dbl (4): MS/MS, MS/MS Identified, MS/MS Identified [%], Peptide Sequences Id...
   vertical-align: top;
 }
 
-#grhnwqinjv .gt_row_group_first td {
+#zcpfujonas .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#grhnwqinjv .gt_row_group_first th {
+#zcpfujonas .gt_row_group_first th {
   border-top-width: 2px;
 }
 
-#grhnwqinjv .gt_summary_row {
+#zcpfujonas .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -518,16 +658,16 @@ dbl (4): MS/MS, MS/MS Identified, MS/MS Identified [%], Peptide Sequences Id...
   padding-right: 5px;
 }
 
-#grhnwqinjv .gt_first_summary_row {
+#zcpfujonas .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D3D3D3;
 }
 
-#grhnwqinjv .gt_first_summary_row.thick {
+#zcpfujonas .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#grhnwqinjv .gt_last_summary_row {
+#zcpfujonas .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -537,7 +677,7 @@ dbl (4): MS/MS, MS/MS Identified, MS/MS Identified [%], Peptide Sequences Id...
   border-bottom-color: #D3D3D3;
 }
 
-#grhnwqinjv .gt_grand_summary_row {
+#zcpfujonas .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -547,7 +687,7 @@ dbl (4): MS/MS, MS/MS Identified, MS/MS Identified [%], Peptide Sequences Id...
   padding-right: 5px;
 }
 
-#grhnwqinjv .gt_first_grand_summary_row {
+#zcpfujonas .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -557,7 +697,7 @@ dbl (4): MS/MS, MS/MS Identified, MS/MS Identified [%], Peptide Sequences Id...
   border-top-color: #D3D3D3;
 }
 
-#grhnwqinjv .gt_last_grand_summary_row_top {
+#zcpfujonas .gt_last_grand_summary_row_top {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -567,11 +707,11 @@ dbl (4): MS/MS, MS/MS Identified, MS/MS Identified [%], Peptide Sequences Id...
   border-bottom-color: #D3D3D3;
 }
 
-#grhnwqinjv .gt_striped {
+#zcpfujonas .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#grhnwqinjv .gt_table_body {
+#zcpfujonas .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -580,7 +720,7 @@ dbl (4): MS/MS, MS/MS Identified, MS/MS Identified [%], Peptide Sequences Id...
   border-bottom-color: #D3D3D3;
 }
 
-#grhnwqinjv .gt_footnotes {
+#zcpfujonas .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -594,7 +734,7 @@ dbl (4): MS/MS, MS/MS Identified, MS/MS Identified [%], Peptide Sequences Id...
   border-right-color: #D3D3D3;
 }
 
-#grhnwqinjv .gt_footnote {
+#zcpfujonas .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-top: 4px;
@@ -603,7 +743,7 @@ dbl (4): MS/MS, MS/MS Identified, MS/MS Identified [%], Peptide Sequences Id...
   padding-right: 5px;
 }
 
-#grhnwqinjv .gt_sourcenotes {
+#zcpfujonas .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -617,7 +757,7 @@ dbl (4): MS/MS, MS/MS Identified, MS/MS Identified [%], Peptide Sequences Id...
   border-right-color: #D3D3D3;
 }
 
-#grhnwqinjv .gt_sourcenote {
+#zcpfujonas .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -625,71 +765,71 @@ dbl (4): MS/MS, MS/MS Identified, MS/MS Identified [%], Peptide Sequences Id...
   padding-right: 5px;
 }
 
-#grhnwqinjv .gt_left {
+#zcpfujonas .gt_left {
   text-align: left;
 }
 
-#grhnwqinjv .gt_center {
+#zcpfujonas .gt_center {
   text-align: center;
 }
 
-#grhnwqinjv .gt_right {
+#zcpfujonas .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#grhnwqinjv .gt_font_normal {
+#zcpfujonas .gt_font_normal {
   font-weight: normal;
 }
 
-#grhnwqinjv .gt_font_bold {
+#zcpfujonas .gt_font_bold {
   font-weight: bold;
 }
 
-#grhnwqinjv .gt_font_italic {
+#zcpfujonas .gt_font_italic {
   font-style: italic;
 }
 
-#grhnwqinjv .gt_super {
+#zcpfujonas .gt_super {
   font-size: 65%;
 }
 
-#grhnwqinjv .gt_footnote_marks {
+#zcpfujonas .gt_footnote_marks {
   font-size: 75%;
   vertical-align: 0.4em;
   position: initial;
 }
 
-#grhnwqinjv .gt_asterisk {
+#zcpfujonas .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#grhnwqinjv .gt_indent_1 {
+#zcpfujonas .gt_indent_1 {
   text-indent: 5px;
 }
 
-#grhnwqinjv .gt_indent_2 {
+#zcpfujonas .gt_indent_2 {
   text-indent: 10px;
 }
 
-#grhnwqinjv .gt_indent_3 {
+#zcpfujonas .gt_indent_3 {
   text-indent: 15px;
 }
 
-#grhnwqinjv .gt_indent_4 {
+#zcpfujonas .gt_indent_4 {
   text-indent: 20px;
 }
 
-#grhnwqinjv .gt_indent_5 {
+#zcpfujonas .gt_indent_5 {
   text-indent: 25px;
 }
 </style>
 
-<table class="gt_table table table-sm table-striped small" data-quarto-postprocess="true" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
+<table class="gt_table caption-top table table-sm table-striped small" data-quarto-postprocess="true" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
 <thead>
 <tr class="header gt_col_headings">
-<th id="Variable" class="gt_col_heading gt_columns_bottom_border gt_left" data-quarto-table-cell-role="th" scope="col">Variable</th>
+<th id="variable" class="gt_col_heading gt_columns_bottom_border gt_left" data-quarto-table-cell-role="th" scope="col">variable</th>
 <th id="Max" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">Max</th>
 <th id="Min" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">Min</th>
 <th id="Mean" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">Mean</th>
@@ -698,28 +838,28 @@ dbl (4): MS/MS, MS/MS Identified, MS/MS Identified [%], Peptide Sequences Id...
 </thead>
 <tbody class="gt_table_body">
 <tr class="odd">
-<td class="gt_row gt_left" headers="Variable">MS/MS</td>
+<td class="gt_row gt_left" headers="variable">MS/MS</td>
 <td class="gt_row gt_right" headers="Max">76291.0</td>
 <td class="gt_row gt_right" headers="Min">43689.0</td>
 <td class="gt_row gt_right" headers="Mean">59796.2</td>
 <td class="gt_row gt_right" headers="Sd">10313.3</td>
 </tr>
 <tr class="even">
-<td class="gt_row gt_left" headers="Variable">MS/MS Identified</td>
+<td class="gt_row gt_left" headers="variable">MS/MS Identified</td>
 <td class="gt_row gt_right" headers="Max">46623.0</td>
 <td class="gt_row gt_right" headers="Min">20545.0</td>
 <td class="gt_row gt_right" headers="Mean">32962.1</td>
 <td class="gt_row gt_right" headers="Sd">6427.9</td>
 </tr>
 <tr class="odd">
-<td class="gt_row gt_left" headers="Variable">MS/MS Identified [%]</td>
+<td class="gt_row gt_left" headers="variable">MS/MS Identified [%]</td>
 <td class="gt_row gt_right" headers="Max">74.1</td>
 <td class="gt_row gt_right" headers="Min">41.4</td>
 <td class="gt_row gt_right" headers="Mean">55.8</td>
 <td class="gt_row gt_right" headers="Sd">10.4</td>
 </tr>
 <tr class="even">
-<td class="gt_row gt_left" headers="Variable">Peptide Sequences Identified</td>
+<td class="gt_row gt_left" headers="variable">Peptide Sequences Identified</td>
 <td class="gt_row gt_right" headers="Max">30231.0</td>
 <td class="gt_row gt_right" headers="Min">7042.0</td>
 <td class="gt_row gt_right" headers="Mean">16630.8</td>
@@ -731,71 +871,105 @@ dbl (4): MS/MS, MS/MS Identified, MS/MS Identified [%], Peptide Sequences Id...
 </div>
 </div>
 </div>
-</div>
-<ol start="4" type="1">
-<li><strong>Create a histogram of the identified MS/MS</strong></li>
-</ol>
-<div class="cell">
+</section>
+<section id="create-a-histogram-of-the-identified-msms" class="level2" data-number="2.4">
+<h2 data-number="2.4" class="anchored" data-anchor-id="create-a-histogram-of-the-identified-msms"><span class="header-section-number">2.4</span> Create a histogram of the identified MS/MS</h2>
+<p>Sometimes visualizing the data can give us a better idea of the quality per sample. You can try to plot the distribution of MS/MS identified (%) across all samples. You can add a vertical line using <code>geom_vline()</code> to highlight the mean of the values. The mean can be manually added using the value calculated in the previous table.</p>
+<div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>percentage <span class="ot">&lt;-</span> quality <span class="sc">%&gt;%</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="st">`</span><span class="at">MS/MS Identified [%]</span><span class="st">`</span>)) <span class="sc">+</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>(<span class="at">binwidth =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept=</span> <span class="fl">55.7</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>, </span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>             <span class="at">color =</span> <span class="st">"red"</span>, <span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">75</span>, <span class="at">by =</span> <span class="dv">5</span>)) <span class="sc">+</span></span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">5</span>, <span class="at">by =</span> <span class="dv">1</span>),</span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>                     <span class="at">expand =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>)) <span class="sc">+</span></span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">y =</span> <span class="st">"Number of samples"</span>) <span class="sc">+</span></span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>()</span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>percentage</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">rawfile =</span> <span class="st">`</span><span class="at">Raw file</span><span class="st">`</span>) <span class="sc">%&gt;%</span> <span class="co">#Rename variable "Raw file"</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(rawfile <span class="sc">!=</span> <span class="st">"Total"</span>) <span class="sc">%&gt;%</span> <span class="co">#Filter out the row "Total"</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="st">`</span><span class="at">MS/MS Identified [%]</span><span class="st">`</span>)) <span class="sc">+</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>(<span class="at">binwidth =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept=</span> <span class="fl">55.8</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="co">#Add a line to indicate mean</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>             <span class="at">color =</span> <span class="st">"red"</span>, <span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">75</span>, <span class="at">by =</span> <span class="dv">5</span>)) <span class="sc">+</span> <span class="co">#Control x axis scale</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">4</span>), <span class="co">#Control y axis scale</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>                     <span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">5</span>, <span class="at">by =</span> <span class="dv">1</span>),</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>                     <span class="at">expand =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>)) <span class="sc">+</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">y =</span> <span class="st">"Number of samples"</span>) <span class="sc">+</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>()</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>percentage</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<div>
+<div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="run_quality_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="run_quality_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="384"></p>
 </figure>
 </div>
 </div>
 </div>
-<ol start="5" type="1">
-<li><strong>Create a histogram of the identified peptide sequences</strong></li>
-</ol>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>peptides <span class="ot">&lt;-</span> quality <span class="sc">%&gt;%</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="st">`</span><span class="at">Raw file</span><span class="st">`</span> <span class="sc">!=</span> <span class="st">"Total"</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="st">`</span><span class="at">Raw file</span><span class="st">`</span> <span class="ot">=</span><span class="fu">str_remove</span>(<span class="st">`</span><span class="at">Raw file</span><span class="st">`</span>, <span class="st">"Seifert_Hammel_Nr"</span>)) <span class="sc">%&gt;%</span> </span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="st">`</span><span class="at">Peptide Sequences Identified</span><span class="st">`</span>)) <span class="sc">+</span></span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>(<span class="at">binwidth =</span> <span class="dv">1000</span>) <span class="sc">+</span></span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="dv">16630</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>, </span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>             <span class="at">color =</span> <span class="st">"red"</span>, <span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">30231</span>, <span class="at">by =</span> <span class="dv">2500</span>)) <span class="sc">+</span></span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">20</span>, <span class="at">by =</span> <span class="dv">2</span>),</span>
-<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>                     <span class="at">expand =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>)) <span class="sc">+</span></span>
-<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">y =</span> <span class="st">"Number of samples"</span>) <span class="sc">+</span></span>
-<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>()</span>
-<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>peptides</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>You can try to do the same plot with the <code>Peptide sequences identified</code>. Be aware that you need to change the scale in the y axis.</p>
+</section>
+<section id="create-a-box-plot-using-a-grouping-variable" class="level2" data-number="2.5">
+<h2 data-number="2.5" class="anchored" data-anchor-id="create-a-box-plot-using-a-grouping-variable"><span class="header-section-number">2.5</span> Create a box plot using a grouping variable</h2>
+<p>You can also visualize the MS/MS identified (%) in a group of samples. In this case we can create a box plot indicating the MS/MS identified (%) in samples from the Caecum and Jejunum.</p>
+<p>First of all we need to clean and tidy the metadata. You need to rename the column <strong><code>Probenname</code></strong> so it match the column in our quality data frame. After, you need to modify the samples name stored in the <strong><code>rawfile</code></strong> column. You will notice that in the metadata the values of <strong><code>rawfile</code></strong> contain a “.” but in the run quality data the <strong><code>rawfile</code></strong> contains “_”. The values in bot data frames must match, otherwise it is impossible to join them. Finally, you can separate the column that contain the information from where the sample was taken and the kind of sample.</p>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>metadata_clean <span class="ot">&lt;-</span> metadata <span class="sc">%&gt;%</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">rawfile =</span> Probenname) <span class="sc">%&gt;%</span> <span class="co">#Rename column to match quality data frame</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">rawfile =</span> <span class="fu">str_replace</span>(rawfile, <span class="st">"</span><span class="sc">\\</span><span class="st">."</span>, <span class="st">"_"</span>)) <span class="sc">%&gt;%</span> <span class="co">#Replace . for _</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">separate</span>(Abschnitt, <span class="co">#Separate the column "Abschnitt" into 2 new columns</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>           <span class="at">sep =</span> <span class="st">" "</span>,</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>           <span class="at">into =</span> <span class="fu">c</span>(<span class="st">"region"</span>, <span class="st">"source"</span>))</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(metadata_clean)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 × 3
+  rawfile region   source 
+  &lt;chr&gt;   &lt;chr&gt;    &lt;chr&gt;  
+1 9_1     Stomach  Digesta
+2 9_3     Stomach  Mucosa 
+3 9_4     Stomach  Mucosa 
+4 9_5     Stomach  Mucosa 
+5 9_6     Duodenum Digesta
+6 9_8     Duodenum Mucosa </code></pre>
+</div>
+</div>
+<p>After tidying the metadata, you can join it with the quality data. This new data frame can be use to create a box plot of the MS/MS identified (%) in the samples label as Caecum and Jejunum.</p>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>boxplot <span class="ot">&lt;-</span> quality <span class="sc">%&gt;%</span> </span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">rawfile =</span> <span class="st">`</span><span class="at">Raw file</span><span class="st">`</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(rawfile <span class="sc">!=</span> <span class="st">"Total"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>Experiment) <span class="sc">%&gt;%</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(metadata_clean, <span class="at">by =</span> <span class="st">"rawfile"</span>) <span class="sc">%&gt;%</span> <span class="co">#join the metadata and quality</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">y =</span> <span class="st">`</span><span class="at">MS/MS Identified [%]</span><span class="st">`</span>,</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>             <span class="at">x =</span> region)) <span class="sc">+</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>(<span class="at">width =</span> <span class="fl">0.3</span>) <span class="sc">+</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_jitter</span>(<span class="at">width =</span> <span class="fl">0.2</span>,</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>              <span class="fu">aes</span>(<span class="at">color =</span> region)) <span class="sc">+</span> <span class="co">#color the dots by gut region</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">expand =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>),</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>                     <span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">100</span>))<span class="sc">+</span> <span class="co">#Modify the y scale</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>() <span class="sc">+</span></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.title =</span> <span class="fu">element_blank</span>()) <span class="co">#Remove the legend title</span></span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>boxplot</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<div>
+<div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="run_quality_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="run_quality_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="384"></p>
 </figure>
 </div>
 </div>
 </div>
-<ol start="6" type="1">
-<li><strong>Create a compose plot</strong></li>
-</ol>
-<div class="cell">
+</section>
+<section id="create-a-compose-plot" class="level2" data-number="2.6">
+<h2 data-number="2.6" class="anchored" data-anchor-id="create-a-compose-plot"><span class="header-section-number">2.6</span> Create a compose plot</h2>
+<p>Finally you can create a compose plot using <strong><code>patchwork</code></strong> to display the MS/MS identified (%) in all the samples and gruped by the different gut regions.</p>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>(percentage <span class="sc">|</span> boxplot)  <span class="sc">+</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_annotation</span>(<span class="at">tag_levels =</span> <span class="st">'A'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<div>
+<div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="run_quality_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="run_quality_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="672"></p>
 </figure>
 </div>
 </div>
 </div>
 
 
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
@@ -1214,8 +1388,8 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./taxonomy_nmds.html" class="pagination-link" aria-label="taxonomy_nmds.html">
-        <span class="nav-page-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">taxonomy_nmds.html</span></span> <i class="bi bi-arrow-right-short"></i>
+      <a href="./taxonomy_nmds.html" class="pagination-link" aria-label="Ordination based on taxonomy">
+        <span class="nav-page-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Ordination based on taxonomy</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>
