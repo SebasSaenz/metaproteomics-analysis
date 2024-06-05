@@ -15,7 +15,6 @@ library(tidyverse)
 library(patchwork)
 library(gt)
 library(here)
-library(kableExtra)
 ```
 
 ## Load data frame
@@ -39,8 +38,7 @@ Let´s have a look of the data.
 
 quality %>% 
    head() %>%  
-  knitr::kable(align = "lccrr") %>% 
-  kable_paper(full_width = F, html_font = "Cambria")
+  knitr::kable(align = "lccrr")
 ```
 
 ```{r}
@@ -51,8 +49,7 @@ quality %>%
 
 metadata %>% 
   head() %>%  
-  knitr::kable(align = "lccrr") %>% 
-  kable_paper(full_width = F, html_font = "Cambria")
+  knitr::kable(align = "lccrr")
 ```
 
 ## Create a table
