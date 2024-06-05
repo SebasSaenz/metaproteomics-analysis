@@ -20,8 +20,3 @@ format:
       - cosmo
       - style.css
     code-link: true
-  pdf:
-    documentclass: scrreprt
-
-
-
