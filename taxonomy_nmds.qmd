@@ -1,1 +1,143 @@
 # Ordination based on taxonomy
+
+```{r}
+#| warning: false
+library(tidyverse)
+library(vegan)
+library(here)
+library(broom)
+library(gt)
+```
+
+
+
+```{r}
+#| warning: false
+taxonomy_df <- read_tsv("rawdata/taxonomy.tsv") %>%
+  rename(genome = Genome)
+
+metadata_clean <- read_tsv("rawdata/metadata.txt") %>%
+  rename(sample = Probenname) %>% #Rename column to match quality data frame
+  mutate(sample = str_replace(sample, "\\.", "_")) %>% #Replace . for _
+  separate(Abschnitt, #Separate the column "Abschnitt" into 2 new columns
+           sep = " ",
+           into = c("region", "source"))
+```
+
+
+
+```{r}
+df_taxonomy <- taxonomy_df %>%
+  select(genome, starts_with("Intensity ")) %>%
+  pivot_longer(-genome, names_to = "sample", values_to = "intensity") %>%
+  mutate(
+    sample = str_remove(sample, "Intensity ")
+  ) %>%
+  group_by(sample) %>% 
+  mutate(
+    rel_abun = 100 * (intensity / sum(intensity))) %>%
+  inner_join(metadata_clean, by = "sample") %>%
+  pivot_wider(id_cols = genome, names_from = sample, values_from = rel_abun)
+
+```
+
+
+```{r}
+matrix_taxonomy <- df_taxonomy[c(2:ncol(df_taxonomy))] %>%
+  t()
+
+dist <- vegdist(matrix_taxonomy, method = "bray")
+
+```
+
+
+
+```{r}
+#| warning: false
+nmds1_taxonomy <- metaMDS(matrix_taxonomy, # perform nmds
+  distance = "bray",
+  try = 20,
+  trymax = 100,
+  maxit = 1000,
+  k = 3
+)
+
+```
+
+
+```{r}
+data_scores_tax <- as.data.frame(scores(nmds1_taxonomy, display = c("sites"))) %>% 
+  rownames_to_column(var = "sample")
+
+data_nmds_tax <- data_scores_tax %>%
+  left_join(metadata_clean, by = "sample")
+
+centroid_tax <- data_nmds_tax %>%
+  group_by(region) %>%
+  summarise(
+    NMDS1 = mean(NMDS1),
+    NMDS2 = mean(NMDS2)
+  )
+
+```
+
+
+
+```{r}
+
+color_base <- c("darkgreen", "darkblue")
+
+tax_plot <- data_nmds_tax %>%
+  ggplot(aes(
+    x = NMDS1,
+    y = NMDS2,
+    color = region
+  )) +
+  geom_point(size = 3) +
+  geom_point(
+    data = centroid_tax, size = 3,
+    shape = 21,
+    color = "black",
+    aes(fill = region)
+  ) +
+  scale_color_manual(
+    values = color_base,
+    guide = guide_legend(override.aes = list(color = color_base))
+  ) +
+  scale_fill_manual(values = color_base) +
+  scale_shape_manual(values = c(25, 24, 23)) +
+  theme(
+    panel.background = element_blank(),
+    legend.key = element_blank(),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 12),
+    legend.box.spacing = unit(0, "cm"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.border = element_rect(colour = "black", fill = NA, linewidth = 1)
+  )
+
+tax_plot
+```
+
+
+```{r}
+
+
+qc_df <-  read_tsv("rawdata/final_summary.tsv") %>% 
+  filter(`Raw file` != "Total") %>% 
+  pull(`Raw file`)
+
+metadata_filtered <- metadata_clean %>% 
+  filter(sample %in% qc_df)
+  
+adonis_tax <- adonis2(as.dist(dist) ~ metadata_filtered$region, 
+                      permutations = 1000)
+
+
+tidy(adonis_tax) %>% 
+  gt() %>% 
+  gtsave("rawdata/adonis_tax.docx")
+
+```
+
